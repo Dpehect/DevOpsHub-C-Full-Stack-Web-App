@@ -11,7 +11,14 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky",
+    "check": "npm run typecheck && npm run lint && npm run test"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix"
+    ]
   },
   "dependencies": {
     "@microsoft/signalr": "^8.0.7",
@@ -19,7 +26,8 @@
     "dompurify": "^3.2.4",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
@@ -35,6 +43,8 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5",
