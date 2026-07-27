@@ -1,0 +1,13 @@
+**/bin
+**/obj
+**/.vs
+**/.idea
+**/*.user
+**/*.suo
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/logs
+.git
+.github
+README.md

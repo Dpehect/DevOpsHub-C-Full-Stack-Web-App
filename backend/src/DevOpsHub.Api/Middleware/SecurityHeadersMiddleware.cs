@@ -9,10 +9,22 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
         headers["X-Frame-Options"] = "DENY";
         headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
         headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-        headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
-        headers["Cross-Origin-Opener-Policy"] = "same-origin";
-        headers["Cross-Origin-Resource-Policy"] = "same-site";
-        context.Response.Headers.Remove("Server");
+        headers["Content-Security-Policy"] =
+            "default-src 'self'; " +
+            "script-src 'self'; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "img-src 'self' data:; " +
+            "connect-src 'self' ws: wss:; " +
+            "frame-ancestors 'none'; " +
+            "object-src 'none'; " +
+            "base-uri 'self';";
+
+        if (context.Request.IsHttps)
+        {
+            headers["Strict-Transport-Security"] =
+                "max-age=31536000; includeSubDomains; preload";
+        }
+
         await next(context);
     }
 }
