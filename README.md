@@ -1,27 +1,17 @@
-# DevOpsHub
+# DevOpsHub — Final Portfolio Edition
 
-Zero-cost portfolio-grade DevOps workspace built with ASP.NET Core and React.
+A zero-cost, API-key-free engineering operations platform for a professional C#/.NET Full Stack portfolio.
 
-## Phase 01
-- Monorepo structure
-- Clean Architecture projects
-- ASP.NET Core API bootstrap
-- React + TypeScript frontend bootstrap
-- SQLite-ready configuration
-- Health endpoint
-- Docker and CI foundations
+## Stack
+ASP.NET Core 8, EF Core, SQLite, JWT, SignalR, Serilog, React, TypeScript, Vite, Docker and GitHub Actions.
 
-## Local run
-### Backend
+## Final modules
+Workspace/RBAC, projects and Kanban, repository browser and diff viewer, pipelines, incidents/SLA, notifications, logs/audit, wiki, global search, customizable dashboard, file versions, sprint calendar, executive analytics, API versioning, performance caching, approval workflows and admin.
+
+## Run
 ```bash
-cd backend/src/DevOpsHub.Api
-dotnet restore
-dotnet run
+docker compose up --build
 ```
+Frontend: http://localhost:3000  ·  API: http://localhost:8080
 
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
+Demo credentials are documented in the seeded environment configuration. No paid API, cloud account or external key is required.

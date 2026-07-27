@@ -7,5 +7,9 @@
   <ItemGroup>
     <ProjectReference Include="../DevOpsHub.Application/DevOpsHub.Application.csproj" />
     <ProjectReference Include="../DevOpsHub.Infrastructure/DevOpsHub.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
   </ItemGroup>
 </Project>
