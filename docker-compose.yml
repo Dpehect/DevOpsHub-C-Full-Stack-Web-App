@@ -1,0 +1,9 @@
+services:
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /workspace/backend/src/DevOpsHub.Api
+    volumes:
+      - ./:/workspace
+    command: dotnet run --urls=http://0.0.0.0:8080
+    ports:
+      - "8080:8080"
