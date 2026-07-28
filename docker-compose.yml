@@ -29,26 +29,20 @@ services:
       Jwt__AccessTokenMinutes: 15
       Jwt__RefreshTokenDays: 14
       Cors__Origins__0: ${FRONTEND_ORIGIN:-http://localhost:3000}
+      OpenApi__EnableSwaggerUi: ${ENABLE_SWAGGER_UI:-false}
     depends_on:
       db:
         condition: service_healthy
     expose:
       - "8080"
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "dotnet -e \"new System.Net.Http.HttpClient().GetStringAsync(\\\"http://localhost:8080/health/ready\\\").GetAwaiter().GetResult();\""
-        ]
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/healthz || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
 
   web:
     build:
@@ -65,5 +59,25 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
 volumes:
   devopshub-postgres:
+  prometheus-data:

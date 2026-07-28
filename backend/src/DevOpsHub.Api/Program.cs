@@ -2,6 +2,7 @@ using DevOpsHub.Api.Extensions;
 using DevOpsHub.Api.Filters;
 using DevOpsHub.Api.Hubs;
 using DevOpsHub.Api.Middleware;
+using DevOpsHub.Api.Observability;
 using DevOpsHub.Api.OpenApi;
 using DevOpsHub.Application;
 using DevOpsHub.Infrastructure;
@@ -29,16 +30,13 @@ builder.Services.AddValidatorsFromAssemblyContaining<
 
 builder.Services.AddProductionRateLimiting();
 builder.Services.AddProductionHealthChecks();
+builder.Services.AddEnterpriseSwagger();
+builder.Services.AddEnterpriseObservability();
 
 builder.Services.AddScoped<FluentValidationFilter>();
 builder.Services.AddControllers(options =>
 {
     options.Filters.AddService<FluentValidationFilter>();
-});
-
-builder.Services.AddOpenApi(options =>
-{
-    options.AddDocumentTransformer<BearerSecurityTransformer>();
 });
 
 builder.Services.AddOutputCache();
@@ -74,10 +72,10 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 app.UseExceptionHandler();
+app.UseEnterpriseSwagger();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     await app.Services.InitializeDatabaseAsync();
 }
 else
@@ -103,6 +101,7 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseOutputCache();
+app.UseEnterpriseObservability();
 
 app.MapControllers().RequireRateLimiting("api");
 app.MapHub<NotificationHub>("/hubs/notifications")
