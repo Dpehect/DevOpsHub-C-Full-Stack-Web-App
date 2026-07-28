@@ -1,0 +1,30 @@
+.skeleton {
+  display: block;
+  overflow: hidden;
+  position: relative;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, currentColor 10%, transparent),
+    transparent
+  );
+  animation: skeleton-shimmer 1.4s infinite;
+}
+
+.skeleton-row + .skeleton-row {
+  margin-top: 12px;
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

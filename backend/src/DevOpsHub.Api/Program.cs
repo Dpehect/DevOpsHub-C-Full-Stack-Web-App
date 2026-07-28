@@ -2,13 +2,13 @@ using DevOpsHub.Api.Extensions;
 using DevOpsHub.Api.Filters;
 using DevOpsHub.Api.Hubs;
 using DevOpsHub.Api.Middleware;
+using DevOpsHub.Api.OpenApi;
 using DevOpsHub.Application;
 using DevOpsHub.Infrastructure;
 using DevOpsHub.Infrastructure.Persistence;
 using FluentValidation;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
-using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,9 +21,13 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddValidatorsFromAssemblyContaining<DevOpsHub.Application.Auth.LoginRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<
+    DevOpsHub.Application.Auth.LoginRequestValidator>();
+
+builder.Services.AddProductionRateLimiting();
 builder.Services.AddProductionHealthChecks();
 
 builder.Services.AddScoped<FluentValidationFilter>();
@@ -32,7 +36,11 @@ builder.Services.AddControllers(options =>
     options.Filters.AddService<FluentValidationFilter>();
 });
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecurityTransformer>();
+});
+
 builder.Services.AddOutputCache();
 builder.Services.AddSignalR(options =>
 {
@@ -47,42 +55,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         ForwardedHeaders.XForwardedProto;
 });
 
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    options.AddPolicy("auth", context =>
-    {
-        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return RateLimitPartition.GetFixedWindowLimiter(
-            ip,
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-                AutoReplenishment = true
-            });
-    });
-
-    options.AddPolicy("api", context =>
-    {
-        var subject = context.User.FindFirst("sub")?.Value;
-        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
-
-        return RateLimitPartition.GetSlidingWindowLimiter(
-            subject ?? ip,
-            _ => new SlidingWindowRateLimiterOptions
-            {
-                PermitLimit = 120,
-                Window = TimeSpan.FromMinutes(1),
-                SegmentsPerWindow = 6,
-                QueueLimit = 0,
-                AutoReplenishment = true
-            });
-    });
-});
-
 var origins = builder.Configuration
     .GetSection("Cors:Origins")
     .Get<string[]>()
@@ -91,7 +63,8 @@ var origins = builder.Configuration
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
-        policy.WithOrigins(origins)
+        policy
+            .WithOrigins(origins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
@@ -135,6 +108,7 @@ app.MapControllers().RequireRateLimiting("api");
 app.MapHub<NotificationHub>("/hubs/notifications")
     .RequireAuthorization()
     .RequireRateLimiting("api");
+
 app.MapProductionHealthChecks();
 
 app.Run();
