@@ -1,6 +1,5 @@
 # DevOpsHub — Full-Stack & High-Performance Observability Platform
 
-![Uploading ChatGPT Image 28 Tem 2026 03_35_35.png…]()
 
 
 A production-ready full-stack platform built to orchestrate DevOps automation workflows, monitor infrastructure in real time, and execute high-performance native system operations through C modules.
