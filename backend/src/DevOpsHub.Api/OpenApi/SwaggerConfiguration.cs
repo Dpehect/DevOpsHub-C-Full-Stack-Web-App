@@ -16,8 +16,9 @@ public static class SwaggerConfiguration
                 Title = "DevOpsHub API",
                 Version = "v1",
                 Description =
-                    "Enterprise engineering operations API for workspaces, projects, " +
-                    "pipelines, incidents, repositories, authentication and administration.",
+                    "Enterprise engineering operations API for authentication, " +
+                    "workspaces, projects, repositories, pipelines, incidents, " +
+                    "notifications, analytics and administration.",
                 Contact = new OpenApiContact
                 {
                     Name = "DevOpsHub Engineering"
@@ -27,33 +28,26 @@ public static class SwaggerConfiguration
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
-                Description = "Enter: Bearer {JWT access token}",
+                Description = "JWT authorization header. Example: Bearer eyJhbGciOi...",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",
                 BearerFormat = "JWT"
             });
 
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                }] = Array.Empty<string>()
-            });
+            options.OperationFilter<AuthorizeOperationFilter>();
+            options.OperationFilter<StandardResponsesOperationFilter>();
 
-            options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+            options.CustomSchemaIds(type =>
+                type.FullName?.Replace("+", ".") ?? type.Name);
+
             options.SupportNonNullableReferenceTypes();
         });
 
         return services;
     }
 
-    public static IApplicationBuilder UseEnterpriseSwagger(
+    public static WebApplication UseEnterpriseSwagger(
         this WebApplication app)
     {
         var enabled = app.Configuration.GetValue(

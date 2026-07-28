@@ -19,25 +19,41 @@ public sealed class ApplicationMetricsMiddleware(RequestDelegate next)
             stopwatch.Stop();
             DevOpsHubMetrics.ActiveHttpRequests.Dec();
 
-            var route =
-                context.GetEndpoint()?.DisplayName
-                ?? context.Request.Path.Value
-                ?? "unknown";
+            var route = ResolveRoute(context);
+            var method = context.Request.Method;
+            var statusCode = context.Response.StatusCode.ToString();
 
-            DevOpsHubMetrics.ApplicationRequestDuration
-                .WithLabels(
-                    context.Request.Method,
-                    NormalizeRoute(route),
-                    context.Response.StatusCode.ToString())
+            DevOpsHubMetrics.HttpRequests
+                .WithLabels(method, route, statusCode)
+                .Inc();
+
+            DevOpsHubMetrics.HttpRequestDuration
+                .WithLabels(method, route, statusCode)
                 .Observe(stopwatch.Elapsed.TotalSeconds);
+
+            if (context.Response.StatusCode >= 500)
+            {
+                DevOpsHubMetrics.HttpServerErrors
+                    .WithLabels(method, route, statusCode)
+                    .Inc();
+            }
         }
     }
 
-    private static string NormalizeRoute(string route)
+    private static string ResolveRoute(HttpContext context)
     {
-        if (route.Length <= 160)
-            return route;
+        var routePattern = context
+            .GetEndpoint()?
+            .Metadata
+            .GetMetadata<Microsoft.AspNetCore.Routing.RouteNameMetadata>()?
+            .RouteName;
 
-        return route[..160];
+        var displayName = context.GetEndpoint()?.DisplayName;
+        var route = routePattern
+            ?? displayName
+            ?? context.Request.Path.Value
+            ?? "unknown";
+
+        return route.Length <= 160 ? route : route[..160];
     }
 }

@@ -8,11 +8,22 @@ public static class ObservabilityExtensions
     public static IServiceCollection AddEnterpriseObservability(
         this IServiceCollection services)
     {
+        Metrics.DefaultRegistry.SetStaticLabels(new Dictionary<string, string>
+        {
+            ["application"] = "devopshub-api"
+        });
+
         Metrics.SuppressDefaultMetrics(new SuppressDefaultMetricOptions
         {
+            SuppressDebugMetrics = true,
             SuppressEventCounters = false,
-            SuppressProcessMetrics = false,
-            SuppressDebugMetrics = true
+            SuppressProcessMetrics = false
+        });
+
+        Metrics.DefaultRegistry.AddBeforeCollectCallback(() =>
+        {
+            GC.KeepAlive(Environment.WorkingSet);
+            return Task.CompletedTask;
         });
 
         return services;
@@ -21,17 +32,11 @@ public static class ObservabilityExtensions
     public static WebApplication UseEnterpriseObservability(
         this WebApplication app)
     {
-        app.UseHttpMetrics(options =>
-        {
-            options.AddCustomLabel(
-                "host",
-                context => context.Request.Host.Host);
-        });
-
         app.UseMiddleware<ApplicationMetricsMiddleware>();
 
         app.MapMetrics("/metrics")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .ExcludeFromDescription();
 
         return app;
     }
