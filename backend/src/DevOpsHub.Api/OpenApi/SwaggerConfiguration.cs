@@ -17,18 +17,14 @@ public static class SwaggerConfiguration
                 Version = "v1",
                 Description =
                     "Enterprise engineering operations API for authentication, " +
-                    "workspaces, projects, repositories, pipelines, incidents, " +
-                    "notifications, analytics and administration.",
-                Contact = new OpenApiContact
-                {
-                    Name = "DevOpsHub Engineering"
-                }
+                    "workspaces, repositories, pipelines, incidents, native diagnostics, " +
+                    "notifications, analytics and administration."
             });
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
-                Description = "JWT authorization header. Example: Bearer eyJhbGciOi...",
+                Description = "Bearer JWT access token",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",

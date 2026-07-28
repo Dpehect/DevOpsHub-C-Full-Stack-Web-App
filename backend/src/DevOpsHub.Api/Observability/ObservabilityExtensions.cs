@@ -20,12 +20,6 @@ public static class ObservabilityExtensions
             SuppressProcessMetrics = false
         });
 
-        Metrics.DefaultRegistry.AddBeforeCollectCallback(() =>
-        {
-            GC.KeepAlive(Environment.WorkingSet);
-            return Task.CompletedTask;
-        });
-
         return services;
     }
 

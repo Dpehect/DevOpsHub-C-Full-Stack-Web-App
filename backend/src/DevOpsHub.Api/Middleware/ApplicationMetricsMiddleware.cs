@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using DevOpsHub.Api.Observability;
+using Microsoft.AspNetCore.Routing.Patterns;
 
 namespace DevOpsHub.Api.Middleware;
 
@@ -31,7 +32,7 @@ public sealed class ApplicationMetricsMiddleware(RequestDelegate next)
                 .WithLabels(method, route, statusCode)
                 .Observe(stopwatch.Elapsed.TotalSeconds);
 
-            if (context.Response.StatusCode >= 500)
+            if (context.Response.StatusCode >= StatusCodes.Status500InternalServerError)
             {
                 DevOpsHubMetrics.HttpServerErrors
                     .WithLabels(method, route, statusCode)
@@ -42,18 +43,18 @@ public sealed class ApplicationMetricsMiddleware(RequestDelegate next)
 
     private static string ResolveRoute(HttpContext context)
     {
-        var routePattern = context
-            .GetEndpoint()?
-            .Metadata
-            .GetMetadata<Microsoft.AspNetCore.Routing.RouteNameMetadata>()?
-            .RouteName;
+        var endpoint = context.GetEndpoint();
 
-        var displayName = context.GetEndpoint()?.DisplayName;
-        var route = routePattern
-            ?? displayName
-            ?? context.Request.Path.Value
-            ?? "unknown";
+        if (endpoint is RouteEndpoint routeEndpoint)
+        {
+            var rawText = routeEndpoint.RoutePattern.RawText;
+            if (!string.IsNullOrWhiteSpace(rawText))
+                return Limit(rawText);
+        }
 
-        return route.Length <= 160 ? route : route[..160];
+        return Limit(context.Request.Path.Value ?? "unknown");
     }
+
+    private static string Limit(string value) =>
+        value.Length <= 160 ? value : value[..160];
 }
