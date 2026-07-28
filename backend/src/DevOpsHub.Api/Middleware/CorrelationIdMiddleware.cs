@@ -14,7 +14,6 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
 
         context.TraceIdentifier = correlationId;
         context.Response.Headers[HeaderName] = correlationId;
-
         await next(context);
     }
 }

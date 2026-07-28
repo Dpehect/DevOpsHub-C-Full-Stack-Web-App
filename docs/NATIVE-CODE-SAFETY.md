@@ -1,21 +1,19 @@
 # Native Code Safety
 
-The current application is managed C# and TypeScript and does not require manual `malloc/free`.
+The current backend is managed ASP.NET Core and does not use manual `malloc/free`.
 
-If native C/C++ modules are introduced:
+If native C/C++ code is introduced:
 
-- Prefer `std::vector`, `std::array`, `std::string`, RAII and smart pointers.
-- Reject unbounded `strcpy`, `strcat`, `sprintf`, `gets` and raw pointer arithmetic.
-- Validate destination capacity before every copy.
+- Prefer RAII, `std::vector`, `std::array`, `std::string` and smart pointers.
+- Reject `strcpy`, `strcat`, `sprintf`, `gets` and unchecked pointer arithmetic.
+- Validate destination capacity before each copy.
 - Use `snprintf` and verify truncation.
 - Use `strncpy` only with explicit null termination.
 - Compile with stack protector, FORTIFY_SOURCE, ASan and UBSan.
-- Run CodeQL C/C++ and native fuzz tests in CI.
-
-Example:
+- Run CodeQL C/C++ and fuzz tests in CI.
 
 ```c
-int copy_name(char *destination, size_t destination_size, const char *source)
+int copy_text(char *destination, size_t destination_size, const char *source)
 {
     if (destination == NULL || source == NULL || destination_size == 0)
         return -1;

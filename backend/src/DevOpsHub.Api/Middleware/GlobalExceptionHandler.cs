@@ -13,22 +13,22 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var statusCode = exception switch
+        var status = exception switch
         {
             ValidationException => StatusCodes.Status400BadRequest,
+            ArgumentException => StatusCodes.Status400BadRequest,
             UnauthorizedAccessException => StatusCodes.Status403Forbidden,
             KeyNotFoundException => StatusCodes.Status404NotFound,
-            ArgumentException => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status500InternalServerError
         };
 
         logger.LogError(
             exception,
-            "Unhandled exception. TraceId={TraceId}, Path={Path}",
+            "Unhandled exception. TraceId={TraceId} Path={Path}",
             httpContext.TraceIdentifier,
             httpContext.Request.Path);
 
-        httpContext.Response.StatusCode = statusCode;
+        httpContext.Response.StatusCode = status;
 
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
@@ -36,16 +36,13 @@ public sealed class GlobalExceptionHandler(
             Exception = exception,
             ProblemDetails = new ProblemDetails
             {
-                Status = statusCode,
-                Title = statusCode == StatusCodes.Status500InternalServerError
+                Status = status,
+                Title = status == StatusCodes.Status500InternalServerError
                     ? "An unexpected error occurred."
                     : exception.Message,
-                Type = $"https://httpstatuses.com/{statusCode}",
+                Type = $"https://httpstatuses.com/{status}",
                 Instance = httpContext.Request.Path,
-                Extensions =
-                {
-                    ["traceId"] = httpContext.TraceIdentifier
-                }
+                Extensions = { ["traceId"] = httpContext.TraceIdentifier }
             }
         });
     }

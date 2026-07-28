@@ -1,8 +1,6 @@
 import React from "react";
 
-type State = {
-  hasError: boolean;
-};
+type State = { hasError: boolean };
 
 export class AppErrorBoundary extends React.Component<
   React.PropsWithChildren,

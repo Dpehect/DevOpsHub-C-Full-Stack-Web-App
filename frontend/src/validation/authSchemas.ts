@@ -12,9 +12,9 @@ export const registerSchema = z.object({
     .string()
     .min(12)
     .max(128)
-    .regex(/[A-Z]/, "Must contain an uppercase letter")
-    .regex(/[a-z]/, "Must contain a lowercase letter")
-    .regex(/[0-9]/, "Must contain a number")
+    .regex(/[A-Z]/)
+    .regex(/[a-z]/)
+    .regex(/[0-9]/)
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

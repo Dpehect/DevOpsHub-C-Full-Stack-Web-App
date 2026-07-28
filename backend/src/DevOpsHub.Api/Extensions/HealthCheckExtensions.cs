@@ -22,17 +22,17 @@ public static class HealthCheckExtensions
     {
         endpoints.MapHealthChecks("/health/live", new HealthCheckOptions
         {
-            Predicate = registration => registration.Tags.Contains("live")
+            Predicate = check => check.Tags.Contains("live")
         });
 
         endpoints.MapHealthChecks("/health/ready", new HealthCheckOptions
         {
-            Predicate = registration => registration.Tags.Contains("ready")
+            Predicate = check => check.Tags.Contains("ready")
         });
 
         endpoints.MapHealthChecks("/healthz", new HealthCheckOptions
         {
-            Predicate = registration => registration.Tags.Contains("ready")
+            Predicate = check => check.Tags.Contains("ready")
         });
 
         return endpoints;

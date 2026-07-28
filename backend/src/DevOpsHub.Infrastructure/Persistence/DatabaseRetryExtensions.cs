@@ -36,7 +36,8 @@ public static class DatabaseRetryExtensions
             }
 
             if (attempt == maxAttempts)
-                throw new InvalidOperationException("Database is unavailable after retry attempts.");
+                throw new InvalidOperationException(
+                    "Database is unavailable after retry attempts.");
 
             await Task.Delay(delay, cancellationToken);
             delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, 30));

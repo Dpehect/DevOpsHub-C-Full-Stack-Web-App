@@ -10,30 +10,27 @@ public sealed class FluentValidationFilter(IServiceProvider serviceProvider) : I
         ActionExecutingContext context,
         ActionExecutionDelegate next)
     {
-        foreach (var argument in context.ActionArguments.Values.Where(x => x is not null))
+        foreach (var argument in context.ActionArguments.Values.Where(value => value is not null))
         {
             var validatorType = typeof(IValidator<>).MakeGenericType(argument!.GetType());
-            var validator = serviceProvider.GetService(validatorType) as IValidator;
-
-            if (validator is null)
+            if (serviceProvider.GetService(validatorType) is not IValidator validator)
                 continue;
 
-            var validationContext = new ValidationContext<object>(argument);
             var result = await validator.ValidateAsync(
-                validationContext,
+                new ValidationContext<object>(argument),
                 context.HttpContext.RequestAborted);
 
-            if (!result.IsValid)
-            {
-                context.Result = new BadRequestObjectResult(
-                    new ValidationProblemDetails(result.ToDictionary())
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = "Request validation failed.",
-                        Instance = context.HttpContext.Request.Path
-                    });
-                return;
-            }
+            if (result.IsValid)
+                continue;
+
+            context.Result = new BadRequestObjectResult(
+                new ValidationProblemDetails(result.ToDictionary())
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Request validation failed.",
+                    Instance = context.HttpContext.Request.Path
+                });
+            return;
         }
 
         await next();

@@ -1,8 +1,6 @@
 # Apply
 
-Copy the contents of this patch into the repository root and preserve paths.
-
-Then run:
+Copy all files into the repository root, preserving paths.
 
 ```bash
 cd frontend
@@ -16,4 +14,6 @@ dotnet build DevOpsHub.sln -c Release
 dotnet test DevOpsHub.sln -c Release
 ```
 
-Production logging uses ASP.NET Core `ILogger` with Serilog JSON sinks rather than Pino/Winston because the backend is ASP.NET Core, not Express/Fastify.
+The project backend is ASP.NET Core. Therefore FluentValidation, ASP.NET Core rate limiting,
+security-header middleware and Serilog are used instead of Express/Fastify, Zod/Joi,
+express-rate-limit, Helmet and Pino/Winston.

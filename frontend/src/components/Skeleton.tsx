@@ -13,11 +13,7 @@ export function Skeleton({
   radius = 8,
   className
 }: SkeletonProps) {
-  const style: CSSProperties = {
-    width,
-    height,
-    borderRadius: radius
-  };
+  const style: CSSProperties = { width, height, borderRadius: radius };
 
   return (
     <span
