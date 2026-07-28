@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { problemDetailsSchema } from "./problemDetails";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? "/api";
 
@@ -9,15 +10,27 @@ export async function request<T>(
 ): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
+    credentials: "include",
     headers: {
-      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(init?.body ? { "Content-Type": "application/json" } : {}),
       ...init?.headers
     }
   });
 
   if (!response.ok) {
-    const problem = await response.json().catch(() => null);
-    throw new Error(problem?.title ?? `Request failed with ${response.status}`);
+    const raw = await response.json().catch(() => null);
+    const parsed = problemDetailsSchema.safeParse(raw);
+
+    throw new Error(
+      parsed.success
+        ? parsed.data.title ?? `Request failed with ${response.status}`
+        : `Request failed with ${response.status}`
+    );
+  }
+
+  if (response.status === 204) {
+    return schema.parse(undefined);
   }
 
   return schema.parse(await response.json());
